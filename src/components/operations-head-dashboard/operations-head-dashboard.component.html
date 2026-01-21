@@ -1,0 +1,24 @@
+@if(currentUser(); as user) {
+  <div class="flex h-screen bg-gray-100 dark:bg-gray-900 font-sans">
+    <app-sidebar [user]="user" [activeMenuItem]="activeView()" (menuItemClicked)="onNavigate($event)"></app-sidebar>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
+        @switch (activeView()) {
+          @case ('Final Approvals') {
+            <app-final-approval></app-final-approval>
+          }
+          @case ('Plan Summary') {
+            <app-plan-summary></app-plan-summary>
+          }
+          @case ('Reports') {
+            <app-reports></app-reports>
+          }
+          @case ('Audit Trail') {
+            <app-audit-trail></app-audit-trail>
+          }
+        }
+      </main>
+    </div>
+  </div>
+}

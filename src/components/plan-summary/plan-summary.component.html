@@ -1,0 +1,58 @@
+
+<div class="container mx-auto px-6 py-8">
+  <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
+    <h3 class="text-gray-700 dark:text-gray-200 text-3xl font-medium">Plan Summary</h3>
+    <div class="flex items-center space-x-2">
+      <label for="statusFilter" class="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by Status:</label>
+      <select 
+        id="statusFilter"
+        [value]="filterStatus()"
+        (change)="setFilter($event)"
+        class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+        @for(status of planStatuses; track status) {
+          <option [value]="status">{{ status }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+          <tr>
+            <th class="px-6 py-3">Plan Name</th>
+            <th class="px-6 py-3">Status</th>
+            <th class="px-6 py-3">Items</th>
+            <th class="px-6 py-3">Created By</th>
+            <th class="px-6 py-3">Manager Approved By</th>
+            <th class="px-6 py-3">Final Approved By</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for(plan of filteredPlans(); track plan.id) {
+            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+              <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ plan.name }}</td>
+              <td class="px-6 py-4">
+                <span [class]="'px-2 py-1 font-semibold leading-tight rounded-full ' + 
+                  (plan.status === 'Finalized' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-700 dark:text-indigo-100' :
+                   plan.status === 'Approved' ? 'bg-green-100 text-green-700 dark:bg-green-700 dark:text-green-100' :
+                   plan.status === 'Submitted' || plan.status === 'Under Review' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100' :
+                   plan.status === 'Rejected' ? 'bg-red-100 text-red-700 dark:bg-red-700 dark:text-red-100' :
+                   'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-100')">
+                  {{ plan.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-center">{{ plan.items.length }}</td>
+              <td class="px-6 py-4">{{ plan.createdBy }}</td>
+              <td class="px-6 py-4">{{ plan.reviewedBy ?? 'N/A' }}</td>
+              <td class="px-6 py-4">{{ plan.finalApprovedBy ?? 'N/A' }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="text-center p-6">No production plans match the current filter.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

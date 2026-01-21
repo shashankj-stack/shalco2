@@ -1,0 +1,64 @@
+
+<div class="container mx-auto px-6 py-8">
+  <h3 class="text-gray-700 dark:text-gray-200 text-3xl font-medium">Reports: Plan vs. Actual</h3>
+  
+  <div class="mt-6 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+    <form [formGroup]="filterForm" class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+      <div>
+        <label for="startDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
+        <input type="date" id="startDate" formControlName="startDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+      </div>
+      <div>
+        <label for="endDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
+        <input type="date" id="endDate" formControlName="endDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+      </div>
+      <div>
+        <label for="sku" class="block text-sm font-medium text-gray-700 dark:text-gray-300">SKU</label>
+        <input type="text" id="sku" formControlName="sku" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Enter SKU">
+      </div>
+      <div class="flex justify-end">
+        <button (click)="exportData()" class="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">
+          <i class="fas fa-file-excel mr-2"></i> Export
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+          <tr>
+            <th class="px-6 py-3">Date</th>
+            <th class="px-6 py-3">SKU</th>
+            <th class="px-6 py-3">Planned Qty</th>
+            <th class="px-6 py-3">Produced Qty</th>
+            <th class="px-6 py-3">Scrap</th>
+            <th class="px-6 py-3">Variance</th>
+            <th class="px-6 py-3">Plan / Line</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for(row of filteredReportData(); track row.date + row.sku) {
+            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+              <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ row.date }}</td>
+              <td class="px-6 py-4">{{ row.sku }}</td>
+              <td class="px-6 py-4">{{ row.plannedQty }}</td>
+              <td class="px-6 py-4">{{ row.producedQty }}</td>
+              <td class="px-6 py-4">{{ row.scrap }}</td>
+              <td class="px-6 py-4 font-bold" [class]="row.variance < 0 ? 'text-red-500' : 'text-green-500'">
+                {{ row.variance > 0 ? '+' : '' }}{{ row.variance }}
+              </td>
+              <td class="px-6 py-4 text-xs">
+                <div>{{ row.planName }}</div>
+                <div class="text-gray-500 dark:text-gray-400">{{ row.lineName }}</div>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="7" class="text-center p-6">No report data available for the selected filters.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

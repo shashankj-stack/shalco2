@@ -1,0 +1,6 @@
+
+{
+  "name": "Role-Based Production Planning Dashboards",
+  "description": "An application demonstrating role-based access control and navigation in Angular. Users can log in as a Production Planner, Production Manager, Operations Head, or Shop Floor personnel to access a customized dashboard with a role-specific menu.",
+  "requestFramePermissions": []
+}

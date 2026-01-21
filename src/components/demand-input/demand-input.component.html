@@ -1,0 +1,116 @@
+
+<div class="container mx-auto px-6 py-8">
+  <div class="flex justify-between items-center">
+    <h3 class="text-gray-700 dark:text-gray-200 text-3xl font-medium">Demand Input</h3>
+    <button (click)="openModalForCreate()" class="flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-colors duration-300">
+      <i class="fas fa-plus mr-2"></i>
+      Add Demand
+    </button>
+  </div>
+
+  <div class="mt-8">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+              <th scope="col" class="px-6 py-3">SKU</th>
+              <th scope="col" class="px-6 py-3">Quantity</th>
+              <th scope="col" class="px-6 py-3">Required Date</th>
+              <th scope="col" class="px-6 py-3">Status</th>
+              <th scope="col" class="px-6 py-3">Version</th>
+              <th scope="col" class="px-6 py-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (demand of demands(); track demand.id) {
+              <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ demand.sku }}</td>
+                <td class="px-6 py-4">{{ demand.quantity }}</td>
+                <td class="px-6 py-4">{{ demand.date }}</td>
+                <td class="px-6 py-4">
+                  <span [class]="'px-2 py-1 font-semibold leading-tight rounded-full ' + 
+                    (demand.status === 'Approved' ? 'bg-green-100 text-green-700 dark:bg-green-700 dark:text-green-100' :
+                     demand.status === 'Submitted' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100' :
+                     demand.status === 'Rejected' ? 'bg-red-100 text-red-700 dark:bg-red-700 dark:text-red-100' :
+                     'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-100')">
+                    {{ demand.status }}
+                  </span>
+                </td>
+                <td class="px-6 py-4">{{ demand.version }}</td>
+                <td class="px-6 py-4 flex items-center space-x-3">
+                  <button (click)="openModalForEdit(demand)" [disabled]="demand.status !== 'Draft'" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200 disabled:text-gray-400 disabled:cursor-not-allowed">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button (click)="onDelete(demand)" [disabled]="demand.status !== 'Draft'" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-200 disabled:text-gray-400 disabled:cursor-not-allowed">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                  No demand entries found.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+@if (isModalVisible()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" (click)="closeModal()">
+    <div class="relative w-full max-w-lg p-8 mx-4 bg-white rounded-lg shadow-xl dark:bg-gray-800" (click)="$event.stopPropagation()">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">{{ modalTitle() }}</h3>
+      
+      <form [formGroup]="demandForm" (ngSubmit)="saveDemand()" class="space-y-6">
+        <div>
+          <label for="sku" class="block text-sm font-medium text-gray-700 dark:text-gray-300">SKU</label>
+          <input type="text" id="sku" formControlName="sku" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-indigo-400 dark:focus:border-indigo-400" placeholder="e.g., SKU-123">
+          @if (f['sku'].touched && f['sku'].errors) {
+            <div class="text-red-500 text-xs mt-1">
+              @if (f['sku'].errors['required']) { <span>SKU is required.</span> }
+              @if (f['sku'].errors['pattern']) { <span>SKU must be in 'SKU-XXX' format.</span> }
+            </div>
+          }
+        </div>
+        <div>
+          <label for="quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</label>
+          <input type="number" id="quantity" formControlName="quantity" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-indigo-400 dark:focus:border-indigo-400" placeholder="e.g., 100">
+          @if (f['quantity'].touched && f['quantity'].errors) {
+            <div class="text-red-500 text-xs mt-1">
+              @if (f['quantity'].errors['required']) { <span>Quantity is required.</span> }
+              @if (f['quantity'].errors['min']) { <span>Quantity must be at least 1.</span> }
+            </div>
+          }
+        </div>
+        <div>
+          <label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Required Date</label>
+          <input type="date" id="date" formControlName="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-indigo-400 dark:focus:border-indigo-400">
+          @if (f['date'].touched && f['date'].errors) {
+            <div class="text-red-500 text-xs mt-1">
+              @if (f['date'].errors['required']) { <span>Date is required.</span> }
+              @if (f['date'].errors['minDate']) { <span>Date cannot be in the past.</span> }
+            </div>
+          }
+        </div>
+
+        <div class="flex justify-end pt-4 space-x-3">
+          <button type="button" (click)="closeModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-500">
+            Cancel
+          </button>
+          <button type="submit" [disabled]="demandForm.invalid" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed">
+            Save Demand
+          </button>
+        </div>
+      </form>
+      <button (click)="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+}

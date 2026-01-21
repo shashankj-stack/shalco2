@@ -1,0 +1,152 @@
+
+<div class="container mx-auto px-6 py-8">
+  <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
+    <h3 class="text-gray-700 dark:text-gray-200 text-3xl font-medium">Line Scheduling</h3>
+    <div class="flex items-center space-x-2">
+      <label for="scheduleDate" class="text-sm font-medium text-gray-700 dark:text-gray-300">Schedule Date:</label>
+      <input 
+        type="date" 
+        id="scheduleDate"
+        [value]="selectedDate()"
+        (change)="onDateChange($event)"
+        class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Unschedulable Items -->
+    <div class="lg:col-span-1 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 h-fit">
+      <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 border-b dark:border-gray-600 pb-3">Unschedulable Items</h4>
+      <div class="mt-4 max-h-[60vh] overflow-y-auto space-y-3">
+        @for(item of unscheduledItems(); track item.id) {
+          <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600">
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="font-bold text-gray-900 dark:text-white">{{ item.sku }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Qty: {{ item.quantity }} | Required by: {{ item.date }}</p>
+              </div>
+              <button (click)="openSchedulingModal(item.planId, item)" class="px-3 py-1 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+                Schedule
+              </button>
+            </div>
+          </div>
+        } @empty {
+          <p class="text-center text-gray-500 dark:text-gray-400 py-4">No unscheduled items from approved plans.</p>
+        }
+      </div>
+    </div>
+
+    <!-- Production Lines Schedule -->
+    <div class="lg:col-span-2 space-y-6">
+      @for(line of productionLines(); track line.id) {
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div class="border-b dark:border-gray-600 pb-3">
+            <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200">{{ line.name }}</h4>
+            @let usage = getLineUsage(line.id);
+            @let capacity = line.dailyCapacity;
+            @let percentage = (usage / capacity) * 100;
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Daily Capacity Usage: {{ usage }} / {{ capacity }} units
+            </p>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-2">
+              <div [class]="'h-2.5 rounded-full ' + (percentage > 100 ? 'bg-red-500' : 'bg-green-500')" [style.width.%]="percentage > 100 ? 100 : percentage"></div>
+            </div>
+            @if (percentage > 100) {
+              <p class="text-xs text-red-500 mt-1">Warning: Capacity exceeded by {{ usage - capacity }} units.</p>
+            }
+          </div>
+          <div class="mt-4 space-y-3">
+             @for(item of scheduleForDate(); track item.id) {
+              @if (item.lineId === line.id) {
+                <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600 flex justify-between items-center">
+                  <div>
+                    <p class="font-bold text-gray-900 dark:text-white">{{ item.sku }}</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Qty: {{ item.quantity }}</p>
+                    @if(item.overrideReason) {
+                      <p class="text-xs text-yellow-600 dark:text-yellow-400 italic" title="{{ item.overrideReason }}">
+                        <i class="fas fa-exclamation-triangle mr-1"></i> Override
+                      </p>
+                    }
+                  </div>
+                   <button (click)="onUnschedule(item.id)" class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              }
+            } @empty {
+               <p class="text-center text-gray-500 dark:text-gray-400 py-4">No items scheduled for this line today.</p>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Scheduling Modal -->
+@if (isSchedulingModalVisible() && modalData(); as data) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" (click)="closeModals()">
+    <div class="relative w-full max-w-md p-8 mx-4 bg-white rounded-lg shadow-xl dark:bg-gray-800" (click)="$event.stopPropagation()">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Schedule Item: {{ data.item.sku }}</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Schedule for: {{ selectedDate() }}</p>
+
+      <form [formGroup]="scheduleForm" (ngSubmit)="handleScheduleAttempt()" class="space-y-6">
+        <div>
+          <label for="quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</label>
+          <input type="number" id="quantity" formControlName="quantity" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+        </div>
+        <div>
+          <label for="lineId" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Production Line</label>
+          <select id="lineId" formControlName="lineId" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            <option value="" disabled>Select a line</option>
+            @for(line of productionLines(); track line.id) {
+              <option [value]="line.id">{{ line.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="flex justify-end pt-4 space-x-3">
+          <button type="button" (click)="closeModals()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-500">
+            Cancel
+          </button>
+          <button type="submit" [disabled]="scheduleForm.invalid" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 disabled:bg-indigo-400">
+            Add to Schedule
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Conflict Modal -->
+@if (isConflictModalVisible() && conflictData(); as conflict) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" (click)="closeModals()">
+     <div class="relative w-full max-w-md p-8 mx-4 bg-white rounded-lg shadow-xl dark:bg-gray-800" (click)="$event.stopPropagation()">
+      <h3 class="text-xl font-bold text-yellow-600 dark:text-yellow-400 mb-4 flex items-center">
+        <i class="fas fa-exclamation-triangle mr-3"></i> Capacity Warning
+      </h3>
+      <p class="text-gray-700 dark:text-gray-300">
+        Adding this item will exceed the capacity for <span class="font-bold">{{ conflict.line.name }}</span> by <span class="font-bold">{{ conflict.overage }}</span> units.
+      </p>
+
+       <div class="mt-6">
+        <label for="overrideReason" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason for Override (Required)</label>
+        <textarea 
+          id="overrideReason"
+          [value]="overrideReason()"
+          (input)="overrideReason.set($event.target.value)"
+          rows="3" 
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          placeholder="e.g., Urgent client request, using backup machinery..."></textarea>
+      </div>
+
+       <div class="flex justify-end pt-6 space-x-3">
+          <button type="button" (click)="closeModals()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-500">
+            Cancel
+          </button>
+          <button (click)="handleScheduleWithOverride()" [disabled]="overrideReason().trim() === ''" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 disabled:bg-red-400">
+            Proceed with Override
+          </button>
+        </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,71 @@
+
+<div class="container mx-auto px-6 py-8">
+  <h3 class="text-gray-700 dark:text-gray-200 text-3xl font-medium">Capacity Overview</h3>
+  <p class="mt-2 text-gray-600 dark:text-gray-400">Projected load for the next 14 days, including scheduled work and pending plan submissions.</p>
+
+  <div class="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+          <tr>
+            <th class="px-6 py-3">Date</th>
+            <th class="px-6 py-3">Total Demand</th>
+            <th class="px-6 py-3">Total Capacity</th>
+            <th class="px-6 py-3">Utilization</th>
+            <th class="px-6 py-3">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (day of capacityData(); track day.date) {
+            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+              <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ day.date }}</td>
+              <td class="px-6 py-4">
+                <div>{{ day.totalDemand }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                  ({{ day.scheduledQty }} scheduled + {{ day.submittedQty }} pending)
+                </div>
+              </td>
+              <td class="px-6 py-4">{{ day.totalCapacity }}</td>
+              <td class="px-6 py-4">
+                <div class="flex items-center">
+                  <div class="w-20 bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mr-2">
+                    <div 
+                      [class]="'h-2.5 rounded-full ' + (day.utilization > 100 ? 'bg-red-500' : day.utilization > 85 ? 'bg-yellow-400' : 'bg-green-500')" 
+                      [style.width.%]="day.utilization > 100 ? 100 : day.utilization">
+                    </div>
+                  </div>
+                  <span class="font-medium">{{ day.utilization }}%</span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                @if (day.isOverloaded) {
+                  <span class="px-2 py-1 font-semibold leading-tight rounded-full bg-red-100 text-red-700 dark:bg-red-700 dark:text-red-100">
+                    Overloaded
+                  </span>
+                } @else if (day.utilization > 85) {
+                  <span class="px-2 py-1 font-semibold leading-tight rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100">
+                    High
+                  </span>
+                } @else if (day.utilization > 0) {
+                   <span class="px-2 py-1 font-semibold leading-tight rounded-full bg-green-100 text-green-700 dark:bg-green-700 dark:text-green-100">
+                    Nominal
+                  </span>
+                } @else {
+                  <span class="px-2 py-1 font-semibold leading-tight rounded-full bg-gray-100 text-gray-700 dark:bg-gray-600 dark:text-gray-200">
+                    Idle
+                  </span>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                Capacity data could not be calculated.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

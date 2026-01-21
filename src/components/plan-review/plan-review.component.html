@@ -1,0 +1,133 @@
+<div class="container mx-auto px-6 py-8">
+  @switch (view()) {
+    @case ('list') {
+      <h3 class="text-gray-700 dark:text-gray-200 text-3xl font-medium">Plans Submitted for Review</h3>
+      <div class="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+              <tr>
+                <th class="px-6 py-3">Plan Name</th>
+                <th class="px-6 py-3">Created By</th>
+                <th class="px-6 py-3">Items</th>
+                <th class="px-6 py-3">Submitted At</th>
+                <th class="px-6 py-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (plan of submittedPlans(); track plan.id) {
+                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                  <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ plan.name }}</td>
+                  <td class="px-6 py-4">{{ plan.createdBy }}</td>
+                  <td class="px-6 py-4">{{ plan.items.length }}</td>
+                  <td class="px-6 py-4">{{ plan.lastModified | slice:0:16 }}</td>
+                  <td class="px-6 py-4">
+                    <button (click)="viewPlanDetails(plan)" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200 font-medium">
+                      Review
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5" class="text-center p-6 text-gray-500 dark:text-gray-400">There are no plans awaiting review.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+    @case ('detail') {
+      @if (selectedPlan(); as plan) {
+        <div>
+          <div class="flex justify-between items-start mb-6">
+            <div>
+              <button (click)="backToList()" class="text-indigo-600 hover:underline mb-4">
+                &larr; Back to Review List
+              </button>
+              <h3 class="text-gray-700 dark:text-gray-200 text-3xl font-medium">{{ plan.name }}</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Submitted by {{ plan.createdBy }} on {{ plan.lastModified | slice:0:10 }}</p>
+            </div>
+            <div class="flex space-x-3">
+              <button (click)="openRejectionModal()" class="px-4 py-2 font-medium text-red-600 bg-red-100 border border-red-200 rounded-lg hover:bg-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-700 dark:hover:bg-red-900">
+                Reject
+              </button>
+              <button (click)="approveSelectedPlan()" class="px-4 py-2 font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
+                Approve
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Plan Items & Capacity Impact</h4>
+            <div class="overflow-x-auto border dark:border-gray-600 rounded-lg">
+              <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                  <tr>
+                    <th class="px-6 py-3">SKU</th>
+                    <th class="px-6 py-3">Quantity</th>
+                    <th class="px-6 py-3">Required Date</th>
+                    <th class="px-6 py-3">Projected Line Usage on Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of plan.items; track item.id) {
+                    <tr class="border-b dark:border-gray-700">
+                      <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ item.sku }}</td>
+                      <td class="px-6 py-4">{{ item.quantity }}</td>
+                      <td class="px-6 py-4">{{ item.date }}</td>
+                      <td class="px-6 py-4">
+                        <div class="flex flex-col space-y-2">
+                          @for (line of productionLines(); track line.id) {
+                            @let usage = getLineUsageOnDate(item.date, line.id);
+                            @let newTotal = usage + item.quantity;
+                            @let overage = newTotal > line.dailyCapacity;
+                            <div [class]="'text-xs p-1 rounded ' + (overage ? 'bg-red-100 dark:bg-red-900/50' : 'bg-gray-100 dark:bg-gray-700/50')">
+                              <span class="font-semibold">{{ line.name }}:</span> 
+                              {{ usage }} + <span class="font-bold text-indigo-500">{{ item.quantity }}</span> = 
+                              <span [class]="'font-bold ' + (overage ? 'text-red-500' : 'text-green-500')">
+                                {{ newTotal }}
+                              </span> / {{ line.dailyCapacity }}
+                            </div>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      }
+    }
+  }
+</div>
+
+<!-- Rejection Modal -->
+@if (isRejectionModalVisible() && selectedPlan(); as plan) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" (click)="closeRejectionModal()">
+    <div class="relative w-full max-w-lg p-8 mx-4 bg-white rounded-lg shadow-xl dark:bg-gray-800" (click)="$event.stopPropagation()">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Reject Plan: {{ plan.name }}</h3>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Please provide a reason for rejecting this plan. The reason will be sent to the planner.</p>
+
+      <div>
+        <label for="rejectionReason" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Rejection Comments (Required)</label>
+        <textarea 
+          id="rejectionReason"
+          [value]="rejectionReason()"
+          (input)="rejectionReason.set($event.target.value)"
+          rows="4" 
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          placeholder="e.g., Capacity constraints on specified dates, material availability issues..."></textarea>
+      </div>
+      
+      <div class="flex justify-end pt-6 space-x-3">
+        <button type="button" (click)="closeRejectionModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-500">
+          Cancel
+        </button>
+        <button (click)="rejectSelectedPlan()" [disabled]="rejectionReason().trim() === ''" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 disabled:bg-red-400">
+          Confirm Rejection
+        </button>
+      </div>
+    </div>
+  </div>
+}

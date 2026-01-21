@@ -1,0 +1,52 @@
+<aside class="flex flex-col w-64 h-screen px-4 py-8 overflow-y-auto bg-white border-r dark:bg-gray-800 dark:border-gray-600">
+  <div class="flex items-center space-x-3 mb-6 px-2">
+    <i class="fas fa-industry text-3xl text-indigo-500"></i>
+    <h2 class="text-xl font-bold text-gray-800 dark:text-white">Production</h2>
+  </div>
+
+  @if (user(); as u) {
+    <div class="flex flex-col items-center mt-6 -mx-2">
+      <div class="w-24 h-24 rounded-full bg-indigo-500 flex items-center justify-center text-white text-4xl font-bold mb-2">
+        {{ u.name.charAt(0) }}
+      </div>
+      <h4 class="mx-2 mt-2 font-medium text-gray-800 dark:text-gray-200">{{ u.name }}</h4>
+      <p class="mx-2 mt-1 text-sm font-medium text-gray-600 dark:text-gray-400">{{ u.email }}</p>
+    </div>
+  }
+
+  <div class="flex flex-col justify-between flex-1 mt-6">
+    <nav>
+      @if (user(); as u) {
+        @switch (u.role) {
+          @case ('production-planner') {
+            <a href="#" (click)="$event.preventDefault(); setActive('Demand Input')" [class]="activeMenuItem() === 'Demand Input' ? 'bg-gray-100 dark:bg-gray-700' : ''" class="flex items-center px-4 py-2 mt-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-file-import w-5 h-5"></i><span class="mx-4 font-medium">Demand Input</span></a>
+            <a href="#" (click)="$event.preventDefault(); setActive('Production Plan')" [class]="activeMenuItem() === 'Production Plan' ? 'bg-gray-100 dark:bg-gray-700' : ''" class="flex items-center px-4 py-2 mt-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-clipboard-list w-5 h-5"></i><span class="mx-4 font-medium">Production Plan</span></a>
+            <a href="#" (click)="$event.preventDefault(); setActive('Scheduling')" [class]="activeMenuItem() === 'Scheduling' ? 'bg-gray-100 dark:bg-gray-700' : ''" class="flex items-center px-4 py-2 mt-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-calendar-days w-5 h-5"></i><span class="mx-4 font-medium">Scheduling</span></a>
+            <a href="#" (click)="$event.preventDefault(); setActive('My Submissions')" [class]="activeMenuItem() === 'My Submissions' ? 'bg-gray-100 dark:bg-gray-700' : ''" class="flex items-center px-4 py-2 mt-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-paper-plane w-5 h-5"></i><span class="mx-4 font-medium">My Submissions</span></a>
+          }
+          @case ('production-manager') {
+            <a href="#" (click)="$event.preventDefault(); setActive('Plan Review')" [class]="activeMenuItem() === 'Plan Review' ? 'bg-gray-100 dark:bg-gray-700' : ''" class="flex items-center px-4 py-2 mt-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-magnifying-glass-chart w-5 h-5"></i><span class="mx-4 font-medium">Plan Review</span></a>
+            <a href="#" (click)="$event.preventDefault(); setActive('Capacity Overview')" [class]="activeMenuItem() === 'Capacity Overview' ? 'bg-gray-100 dark:bg-gray-700' : ''" class="flex items-center px-4 py-2 mt-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-battery-half w-5 h-5"></i><span class="mx-4 font-medium">Capacity Overview</span></a>
+            <a href="#" (click)="$event.preventDefault(); setActive('Audit Trail')" [class]="activeMenuItem() === 'Audit Trail' ? 'bg-gray-100 dark:bg-gray-700' : ''" class="flex items-center px-4 py-2 mt-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-shield-halved w-5 h-5"></i><span class="mx-4 font-medium">Audit Trail</span></a>
+          }
+          @case ('operations-head') {
+            <a href="#" (click)="$event.preventDefault(); setActive('Final Approvals')" [class]="activeMenuItem() === 'Final Approvals' ? 'bg-gray-100 dark:bg-gray-700' : ''" class="flex items-center px-4 py-2 mt-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-gavel w-5 h-5"></i><span class="mx-4 font-medium">Final Approvals</span></a>
+            <a href="#" (click)="$event.preventDefault(); setActive('Plan Summary')" [class]="activeMenuItem() === 'Plan Summary' ? 'bg-gray-100 dark:bg-gray-700' : ''" class="flex items-center px-4 py-2 mt-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-file-lines w-5 h-5"></i><span class="mx-4 font-medium">Plan Summary</span></a>
+            <a href="#" (click)="$event.preventDefault(); setActive('Reports')" [class]="activeMenuItem() === 'Reports' ? 'bg-gray-100 dark:bg-gray-700' : ''" class="flex items-center px-4 py-2 mt-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-chart-line w-5 h-5"></i><span class="mx-4 font-medium">Reports</span></a>
+            <a href="#" (click)="$event.preventDefault(); setActive('Audit Trail')" [class]="activeMenuItem() === 'Audit Trail' ? 'bg-gray-100 dark:bg-gray-700' : ''" class="flex items-center px-4 py-2 mt-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-shield-halved w-5 h-5"></i><span class="mx-4 font-medium">Audit Trail</span></a>
+          }
+          @case ('shop-floor') {
+            <a href="#" (click)="$event.preventDefault(); setActive('Today’s Schedule')" [class]="activeMenuItem() === 'Today’s Schedule' ? 'bg-gray-100 dark:bg-gray-700' : ''" class="flex items-center px-4 py-2 mt-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-calendar-day w-5 h-5"></i><span class="mx-4 font-medium">Today’s Schedule</span></a>
+            <a href="#" (click)="$event.preventDefault(); setActive('Production Updates')" [class]="activeMenuItem() === 'Production Updates' ? 'bg-gray-100 dark:bg-gray-700' : ''" class="flex items-center px-4 py-2 mt-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-pen-to-square w-5 h-5"></i><span class="mx-4 font-medium">Production Updates</span></a>
+            <a href="#" (click)="$event.preventDefault(); setActive('Deviation Log')" [class]="activeMenuItem() === 'Deviation Log' ? 'bg-gray-100 dark:bg-gray-700' : ''" class="flex items-center px-4 py-2 mt-2 text-gray-700 rounded-md dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-triangle-exclamation w-5 h-5"></i><span class="mx-4 font-medium">Deviation Log</span></a>
+          }
+        }
+      }
+    </nav>
+
+    <button (click)="logout()" class="flex items-center px-4 py-2 mt-4 text-gray-600 rounded-md dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-700 hover:text-red-700 dark:hover:text-red-200 transition-colors">
+      <i class="fa-solid fa-arrow-right-from-bracket w-5 h-5"></i>
+      <span class="mx-4 font-medium">Logout</span>
+    </button>
+  </div>
+</aside>
